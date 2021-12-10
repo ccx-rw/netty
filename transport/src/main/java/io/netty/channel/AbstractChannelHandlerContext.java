@@ -360,10 +360,14 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
 
     static void invokeChannelRead(final AbstractChannelHandlerContext next, Object msg) {
         final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next);
-        EventExecutor executor = next.executor();
+        //判断下一个handler 的事件循是否与当前的事件循环是同一个线程
+        EventExecutor executor = next.executor(); //返回下一个handler的EventLoop
+        //是直接调用
         if (executor.inEventLoop()) {
             next.invokeChannelRead(m);
-        } else {
+        }
+        //不是，将要执行的代码作为任务提交给下一个事件循环处理
+        else {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
